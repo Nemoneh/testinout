@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>تقرير شامل</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      text-align: center;
+    }
+    table {
+      margin: 30px auto;
+      border-collapse: collapse;
+      width: 90%;
+    }
+    th, td {
+      border: 1px solid #aaa;
+      padding: 10px;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    button {
+      margin: 20px;
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>📊 تقرير شامل لكل الفصول</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>اسم الطالب</th>
+      <th>الصف</th>
+      <th>الشعبة</th>
+      <th>عدد الأذونات</th>
+      <th>الحصص</th>
+    </tr>
+  </thead>
+  <tbody id="reportBody"></tbody>
+</table>
+
+<button onclick="window.location.href='اختيار.html'">🔙 رجوع إلى الصفحة الرئيسية</button>
+
+<script>
+  function loadFullReport() {
+    const tbody = document.getElementById("reportBody");
+    tbody.innerHTML = "";
+
+    for (let key in localStorage) {
+      if (key.includes("_")) {
+        const [grade, section] = key.split("_");
+        const report = JSON.parse(localStorage.getItem(key + "_report") || "{}");
+
+        for (let name in report) {
+          const data = report[name];
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${name}</td>
+            <td>${grade}</td>
+            <td>${section}</td>
+            <td>${data.count}</td>
+            <td>${data.periods.join("، ")}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      }
+    }
+  }
+
+  window.onload = loadFullReport;
+</script>
+
+</body>
+</html>
