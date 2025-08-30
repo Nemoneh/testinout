@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>إدارة أذونات الطلاب</title>
+  <button onclick="goBack()" style="background-color:#dc3545; color:white; margin-bottom:10px;">رجوع إلى اختيار الصف</button>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      text-align: center;
+    }
+    table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #aaa;
+      padding: 10px;
+    }
+    th {
+      background: #f2f2f2;
+    }
+    .green {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .red {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    button {
+      padding: 6px 12px;
+      margin: 5px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .exit-btn { background: #007bff; color: white; }
+    .return-btn { background: #28a745; color: white; }
+    .report-btn { background: #ffc107; color: black; }
+    select {
+      padding: 6px;
+      font-size: 16px;
+      margin: 15px;
+    }
+  </style>
+</head>
+<body>
+<h3>الصف: <span id="gradeLabel"></span> | الشعبة: <span id="sectionLabel"></span></h3>
+<p>الحصة الحالية: <span id="currentPeriod"></span></p>
+<h2>إدارة أذونات الطلاب</h2>
+
+<label for="classSelect">اختر الشعبة: </label>
+<select id="classSelect">
+  <option value="A">الشعبة A</option>
+  <option value="B">الشعبة B</option>
+  <option value="C">الشعبة C</option>
+</select>
+
+<button class="report-btn" onclick="showReport()">عرض التقرير</button>
+
+<table id="studentsTable">
+  <thead>
+    <tr>
+      <th>اسم الطالب</th>
+      <th>وقت الخروج</th>
+      <th>وقت الرجوع</th>
+      <th>فرق الوقت</th>
+      <th>الحصة الحالية</th>
+      <th>الإجراءات</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<h3>📊 تقرير الأذونات</h3>
+<table id="reportTable">
+  <thead>
+    <tr>
+      <th>اسم الطالب</th>
+      <th>الشعبة</th>
+      <th>عدد الأذونات</th>
+      <th>الحصص</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+  const studentsByClass = {
+    "A": ["أحمد علي", "محمد يوسف", "سارة خالد", "نور أحمد", "ليلى حسن", "محمود إبراهيم", "هبة سعيد", "إيمان عبد الله", "طارق منصور", "منى عادل"],
+    "B": ["يوسف محمد", "خالد سمير", "نادية حسين", "سلوى جمال", "أحمد فؤاد", "سعيد محمود", "مروان عمر", "هناء يوسف", "فاطمة عبد الرحمن", "رامي طارق"],
+    "C": ["حسام علي", "أماني حسن", "محمود مراد", "أحمد سمير", "زينب محمد", "سارة عبد العزيز", "أشرف علي", "هاجر يوسف", "مروى حسين", "إبراهيم خالد"]
+  };
+
+  let reportData = {};
+
+  function formatDateTime(date) {
+    const days = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+    let dayName = days[date.getDay()];
+    let year = date.getFullYear();
+    let month = (date.getMonth()+1).toString().padStart(2,"0");
+    let day = date.getDate().toString().padStart(2,"0");
+    let hours = date.getHours().toString().padStart(2,"0");
+    let minutes = date.getMinutes().toString().padStart(2,"0");
+    let seconds = date.getSeconds().toString().padStart(2,"0");
+    return `${dayName} ${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+
+  function getPeriodNumber(date) {
+    const startHour = 7;
+    const startMinute = 30;
+    const startTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), startHour, startMinute);
+    const diffMs = date - startTime;
+    const diffMinutes = Math.floor(diffMs / 60000);
+    const period = Math.floor(diffMinutes / 45) + 1;
+    return period > 0 ? `الحصة ${period}` : "خارج وقت الحصص";
+  }
+
+
+  function setExit(button) {
+  let row = button.closest("tr");
+  let now = new Date();
+  let name = row.querySelector("td").innerText;
+  let period = getPeriodNumber(now);
+  let grade = localStorage.getItem("selectedGrade");
+  let section = localStorage.getItem("selectedSection");
+
+  row.querySelector(".exit-time").innerText = formatDateTime(now);
+  row.querySelector(".return-time").innerText = "";
+  row.querySelector(".diff-time").innerText = "";
+  row.querySelector(".diff-time").className = "diff-time"; 
+  row.querySelector(".period-number").innerText = period;
+  row.dataset.exit = now.getTime();
+  button.disabled = true;
+
+  // حفظ في التقرير المؤقت داخل الصفحة
+  if (!reportData[name]) {
+    reportData[name] = { count: 0, periods: [], class: section };
+  }
+  reportData[name].count += 1;
+  reportData[name].periods.push(period);
+
+  // حفظ في LocalStorage لتقرير شامل
+  const storageKey = `${grade}_${section}_report`;
+  let fullReport = JSON.parse(localStorage.getItem(storageKey) || "{}");
+
+  if (!fullReport[name]) {
+    fullReport[name] = { count: 0, periods: [] };
+  }
+  fullReport[name].count += 1;
+  fullReport[name].periods.push(period);
+
+  localStorage.setItem(storageKey, JSON.stringify(fullReport));
+}
+
+  function setReturn(button) {
+    let row = button.closest("tr");
+    let now = new Date();
+    row.querySelector(".return-time").innerText = formatDateTime(now);
+    row.querySelector(".period-number").innerText = getPeriodNumber(now);
+
+    let exitTime = row.dataset.exit;
+    if (exitTime) {
+      let diffMs = now.getTime() - exitTime;
+      let diffHours = Math.floor(diffMs / 3600000);
+      let diffMinutes = Math.floor((diffMs % 3600000) / 60000);
+
+      row.querySelector(".diff-time").innerText = `${diffHours} ساعة و ${diffMinutes} دقيقة`;
+
+      if (diffHours > 0 || diffMinutes > 5) {
+        row.querySelector(".diff-time").className = "diff-time red";
+      } else {
+        row.querySelector(".diff-time").className = "diff-time green";
+      }
+    }
+    button.disabled = true;
+  }
+
+   function loadStudents() {
+    const grade = localStorage.getItem("selectedGrade");
+    const section = localStorage.getItem("selectedSection");
+    const key = `${grade}_${section}`;
+    const students = JSON.parse(localStorage.getItem(key)) || [];
+
+    const tbody = document.querySelector("#studentsTable tbody");
+    tbody.innerHTML = "";
+
+    students.forEach(name => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${name}</td>
+        <td class="exit-time"></td>
+        <td class="return-time"></td>
+        <td class="diff-time"></td>
+        <td class="period-number"></td>
+        <td>
+          <button class="exit-btn" onclick="setExit(this)">خروج</button>
+          <button class="return-btn" onclick="setReturn(this)">رجوع</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+     });
+    }
+	
+
+
+  function showReport() {
+     
+    const tbody = document.querySelector("#reportTable tbody");
+    tbody.innerHTML = "";
+
+    for (let name in reportData) {
+      let data = reportData[name];
+      let tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${name}</td>
+        <td>${data.class}</td>
+        <td>${data.count}</td>
+        <td>${data.periods.join("، ")}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+	
+  }
+
+  document.getElementById("classSelect").addEventListener("change", loadStudents);
+  window.onload = loadStudents;
+  
+  function goBack() {
+  window.location.href = "اختيار.html";
+}
+  // أضف هذا داخل <script>
+document.getElementById("gradeLabel").innerText = localStorage.getItem("selectedGrade") || "غير محدد";
+document.getElementById("sectionLabel").innerText = localStorage.getItem("selectedSection") || "غير محددة";
+
+function updateCurrentPeriod() {
+  const now = new Date();
+  const startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 7, 30);
+  const diffMinutes = Math.floor((now - startTime) / 60000);
+  const period = Math.floor(diffMinutes / 45) + 1;
+  document.getElementById("currentPeriod").innerText = period > 0 ? `الحصة ${period}` : "خارج وقت الحصص";
+}
+setInterval(updateCurrentPeriod, 60000);
+window.onload = () => {
+  updateCurrentPeriod();
+  loadStudents(); // تحميل الطلاب تلقائيًا
+};
+</script>
+
+</body>
+</html>

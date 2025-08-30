@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>اختيار الصف والشعبة</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      text-align: center;
+    }
+    table {
+      margin: 30px auto;
+      border-collapse: collapse;
+      width: 80%;
+    }
+    th, td {
+      border: 1px solid #aaa;
+      padding: 15px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    button {
+      padding: 6px 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>اختيار الصف والشعبة</h2>
+
+<button onclick="window.location.href='تحميل.html'" style="background-color:#28a745; color:white; margin-top:20px;">
+📥 تحميل أسماء الطلاب
+</button>
+<button onclick="window.location.href='تقرير.html'" style="background-color:#17a2b8; color:white; margin-top:20px;">
+📊 عرض تقرير شامل لكل الفصول
+</button>
+<table>
+  <thead>
+    <tr>
+      <th>الصف</th>
+      <th>الشعبة A</th>
+      <th>الشعبة B</th>
+      <th>الشعبة C</th>
+      <th>الشعبة D</th>
+      <th>الشعبة E</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><button onclick="selectClass('الصف الخامس', 'A')">الصف الخامس 1 </button></td>
+      <td></td>
+      <td><button onclick="selectClass('الصف الخامس', 'B')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف الخامس', 'C')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف الخامس', 'D')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف الخامس', 'E')">اختيار</button></td>
+    </tr>
+    <tr>
+      <td>الصف السادس</td>
+      <td><button onclick="selectClass('الصف السادس', 'A')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف السادس', 'B')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف السادس', 'C')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف السادس', 'D')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف السادس', 'E')">اختيار</button></td>
+    </tr>
+    <tr>
+      <td>الصف السابع</td>
+      <td><button onclick="selectClass('الصف السابع', 'A')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف السابع', 'B')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف السابع', 'C')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف السابع', 'D')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف السابع', 'E')">اختيار</button></td>
+    </tr>
+    <tr>
+      <td>الصف الثامن</td>
+      <td><button onclick="selectClass('الصف الثامن', 'A')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف الثامن', 'B')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف الثامن', 'C')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف الثامن', 'D')">اختيار</button></td>
+      <td><button onclick="selectClass('الصف الثامن', 'E')">اختيار</button></td>
+    </tr>
+  </tbody>
+</table>
+
+<script>
+  function selectClass(grade, section) {
+    localStorage.setItem("selectedGrade", grade);
+    localStorage.setItem("selectedSection", section);
+    window.location.href = "اذونات.html";
+  }
+</script>
+
+</body>
+</html>

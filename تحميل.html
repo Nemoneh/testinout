@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>تحميل أسماء الطلاب</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      text-align: center;
+    }
+    select, input[type="file"], button {
+      margin: 10px;
+      padding: 8px;
+      font-size: 16px;
+    }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 80%;
+    }
+    th, td {
+      border: 1px solid #aaa;
+      padding: 10px;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+
+<h2>📥 تحميل أسماء الطلاب من ملف Excel</h2>
+<button onclick="window.location.href='اختيار.html'" style="background-color:#007bff; color:white; margin-top:20px;">
+🔙 رجوع إلى الصفحة الرئيسية
+</button>
+
+<label>اختر الصف:</label>
+<select id="gradeSelect">
+  <option value="الصف الخامس">الصف الخامس</option>
+  <option value="الصف السادس">الصف السادس</option>
+  <option value="الصف السابع">الصف السابع</option>
+  <option value="الصف الثامن">الصف الثامن</option>
+</select>
+
+<label>اختر الشعبة:</label>
+<select id="sectionSelect">
+  <option value="A">A</option>
+  <option value="B">B</option>
+  <option value="C">C</option>
+  <option value="D">D</option>
+  <option value="E">E</option>
+</select>
+
+<br>
+<input type="file" id="fileInput" accept=".xlsx, .xls">
+<button onclick="handleUpload()">تحميل الملف</button>
+
+<h3>📋 قائمة الطلاب:</h3>
+<table id="studentsTable">
+  <thead>
+    <tr><th>الاسم</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+  function handleUpload() {
+    const file = document.getElementById("fileInput").files[0];
+    const grade = document.getElementById("gradeSelect").value;
+    const section = document.getElementById("sectionSelect").value;
+
+    if (!file) {
+      alert("يرجى اختيار ملف Excel أولاً");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const students = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+      const tbody = document.querySelector("#studentsTable tbody");
+      tbody.innerHTML = "";
+
+      students.forEach(row => {
+        if (row[0]) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${row[0]}</td>`;
+          tbody.appendChild(tr);
+        }
+      });
+
+      // حفظ مؤقت في localStorage
+      const key = `${grade}_${section}`;
+      const names = students.map(row => row[0]).filter(name => name);
+      localStorage.setItem(key, JSON.stringify(names));
+      alert(`تم تحميل ${names.length} طالب للشعبة ${section} من ${grade}`);
+    };
+
+    reader.readAsArrayBuffer(file);
+  }
+</script>
+
+</body>
+</html>
